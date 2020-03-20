@@ -32,6 +32,7 @@
 #include "pbd/cartesian.h"
 
 #include "ardour/libardour_visibility.h"
+#include "ardour/pannable.h"
 #include "ardour/types.h"
 #include "ardour/session_object.h"
 
@@ -43,7 +44,6 @@ class Panner;
 class BufferSet;
 class AudioBuffer;
 class Speakers;
-class Pannable;
 
 /** Class to manage panning by instantiating and controlling
  *  an appropriate Panner object for a given in/out configuration.
@@ -69,6 +69,7 @@ public:
 	PBD::Signal0<void> Changed; /* panner and/or outputs count and/or bypass state changed */
 
 	boost::shared_ptr<Panner> panner() const { return _panner; }
+	boost::shared_ptr<PanControls> pan_ctrls() const { return _panlinked ? _pannable_route : _pannable_internal; }
 	boost::shared_ptr<Pannable> pannable() const { return _panlinked ? _pannable_route : _pannable_internal; }
 
 	bool bypassed () const;

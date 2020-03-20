@@ -36,7 +36,7 @@
 #include "gtkmm2ext/utils.h"
 #include "gtkmm2ext/persistent_tooltip.h"
 
-#include "ardour/pannable.h"
+#include "ardour/pan_controls.h"
 #include "ardour/panner.h"
 #include "ardour/panner_shell.h"
 
@@ -64,7 +64,7 @@ bool            MonoPanner::have_font = false;
 MonoPanner::MonoPanner (boost::shared_ptr<ARDOUR::PannerShell> p)
 	: PannerInterface (p->panner())
 	, _panner_shell (p)
-	, position_control (_panner->pannable()->pan_azimuth_control)
+	, position_control (_panner->pan_ctrls()->pan_azimuth_control ())
 	, drag_start_x (0)
 	, last_drag_x (0)
 	, accumulated_delta (0)
@@ -513,7 +513,7 @@ void
 MonoPanner::pannable_handler ()
 {
 	panvalue_connections.drop_connections();
-	position_control = _panner->pannable()->pan_azimuth_control;
+	position_control = _panner->pan_ctrls()->pan_azimuth_control ();
 	position_binder.set_controllable(position_control);
 	position_control->Changed.connect (panvalue_connections, invalidator(*this), boost::bind (&MonoPanner::value_change, this), gui_context());
 	queue_draw ();

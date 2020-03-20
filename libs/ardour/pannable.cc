@@ -42,38 +42,38 @@ using namespace ARDOUR;
 Pannable::Pannable (Session& s)
 	: Automatable (s)
 	, SessionHandleRef (s)
-	, pan_azimuth_control (new PanControllable (s, "", this, PanAzimuthAutomation))
-	, pan_elevation_control (new PanControllable (s, "", this, PanElevationAutomation))
-	, pan_width_control (new PanControllable (s, "", this, PanWidthAutomation))
-	, pan_frontback_control (new PanControllable (s, "", this, PanFrontBackAutomation))
-	, pan_lfe_control (new PanControllable (s, "", this, PanLFEAutomation))
 	, _auto_state (Off)
 	, _has_state (false)
 	, _responding_to_control_auto_state_change (0)
+	, _pan_azimuth_control (new PanControllable (s, "", this, PanAzimuthAutomation))
+	, _pan_elevation_control (new PanControllable (s, "", this, PanElevationAutomation))
+	, _pan_width_control (new PanControllable (s, "", this, PanWidthAutomation))
+	, _pan_frontback_control (new PanControllable (s, "", this, PanFrontBackAutomation))
+	, _pan_lfe_control (new PanControllable (s, "", this, PanLFEAutomation))
 {
 	//boost_debug_shared_ptr_mark_interesting (this, "pannable");
 
 	g_atomic_int_set (&_touching, 0);
 
-	add_control (pan_azimuth_control);
-	add_control (pan_elevation_control);
-	add_control (pan_width_control);
-	add_control (pan_frontback_control);
-	add_control (pan_lfe_control);
+	add_control (_pan_azimuth_control);
+	add_control (_pan_elevation_control);
+	add_control (_pan_width_control);
+	add_control (_pan_frontback_control);
+	add_control (_pan_lfe_control);
 
 	/* all controls change state together */
 
-	pan_azimuth_control->alist()->automation_state_changed.connect_same_thread (*this, boost::bind (&Pannable::control_auto_state_changed, this, _1));
-	pan_elevation_control->alist()->automation_state_changed.connect_same_thread (*this, boost::bind (&Pannable::control_auto_state_changed, this, _1));
-	pan_width_control->alist()->automation_state_changed.connect_same_thread (*this, boost::bind (&Pannable::control_auto_state_changed, this, _1));
-	pan_frontback_control->alist()->automation_state_changed.connect_same_thread (*this, boost::bind (&Pannable::control_auto_state_changed, this, _1));
-	pan_lfe_control->alist()->automation_state_changed.connect_same_thread (*this, boost::bind (&Pannable::control_auto_state_changed, this, _1));
+	_pan_azimuth_control->alist()->automation_state_changed.connect_same_thread (*this, boost::bind (&Pannable::control_auto_state_changed, this, _1));
+	_pan_elevation_control->alist()->automation_state_changed.connect_same_thread (*this, boost::bind (&Pannable::control_auto_state_changed, this, _1));
+	_pan_width_control->alist()->automation_state_changed.connect_same_thread (*this, boost::bind (&Pannable::control_auto_state_changed, this, _1));
+	_pan_frontback_control->alist()->automation_state_changed.connect_same_thread (*this, boost::bind (&Pannable::control_auto_state_changed, this, _1));
+	_pan_lfe_control->alist()->automation_state_changed.connect_same_thread (*this, boost::bind (&Pannable::control_auto_state_changed, this, _1));
 
-	pan_azimuth_control->Changed.connect_same_thread (*this, boost::bind (&Pannable::value_changed, this));
-	pan_elevation_control->Changed.connect_same_thread (*this, boost::bind (&Pannable::value_changed, this));
-	pan_width_control->Changed.connect_same_thread (*this, boost::bind (&Pannable::value_changed, this));
-	pan_frontback_control->Changed.connect_same_thread (*this, boost::bind (&Pannable::value_changed, this));
-	pan_lfe_control->Changed.connect_same_thread (*this, boost::bind (&Pannable::value_changed, this));
+	_pan_azimuth_control->Changed.connect_same_thread (*this, boost::bind (&Pannable::value_changed, this));
+	_pan_elevation_control->Changed.connect_same_thread (*this, boost::bind (&Pannable::value_changed, this));
+	_pan_width_control->Changed.connect_same_thread (*this, boost::bind (&Pannable::value_changed, this));
+	_pan_frontback_control->Changed.connect_same_thread (*this, boost::bind (&Pannable::value_changed, this));
+	_pan_lfe_control->Changed.connect_same_thread (*this, boost::bind (&Pannable::value_changed, this));
 }
 
 Pannable::~Pannable ()
@@ -90,22 +90,16 @@ Pannable::control_auto_state_changed (AutoState new_state)
 
 	_responding_to_control_auto_state_change++;
 
-	pan_azimuth_control->set_automation_state (new_state);
-	pan_width_control->set_automation_state (new_state);
-	pan_elevation_control->set_automation_state (new_state);
-	pan_frontback_control->set_automation_state (new_state);
-	pan_lfe_control->set_automation_state (new_state);
+	_pan_azimuth_control->set_automation_state (new_state);
+	_pan_width_control->set_automation_state (new_state);
+	_pan_elevation_control->set_automation_state (new_state);
+	_pan_frontback_control->set_automation_state (new_state);
+	_pan_lfe_control->set_automation_state (new_state);
 
 	_responding_to_control_auto_state_change--;
 
 	_auto_state = new_state;
 	automation_state_changed (new_state);  /* EMIT SIGNAL */
-}
-
-void
-Pannable::set_panner (boost::shared_ptr<Panner> p)
-{
-	_panner = p;
 }
 
 const std::set<Evoral::Parameter>&
@@ -145,7 +139,7 @@ Pannable::set_automation_state (AutoState state)
 			}
 		}
 
-		session().set_dirty ();
+		_session.set_dirty ();
 		automation_state_changed (_auto_state);
 	}
 }
@@ -189,11 +183,11 @@ Pannable::state ()
 {
 	XMLNode* node = new XMLNode (X_("Pannable"));
 
-	node->add_child_nocopy (pan_azimuth_control->get_state());
-	node->add_child_nocopy (pan_width_control->get_state());
-	node->add_child_nocopy (pan_elevation_control->get_state());
-	node->add_child_nocopy (pan_frontback_control->get_state());
-	node->add_child_nocopy (pan_lfe_control->get_state());
+	node->add_child_nocopy (_pan_azimuth_control->get_state());
+	node->add_child_nocopy (_pan_width_control->get_state());
+	node->add_child_nocopy (_pan_elevation_control->get_state());
+	node->add_child_nocopy (_pan_frontback_control->get_state());
+	node->add_child_nocopy (_pan_lfe_control->get_state());
 
 	node->add_child_nocopy (get_automation_xml_state ());
 
@@ -219,16 +213,16 @@ Pannable::set_state (const XMLNode& root, int version)
 				continue;
 			}
 
-			if (control_name == pan_azimuth_control->name()) {
-				pan_azimuth_control->set_state (**niter, version);
-			} else if (control_name == pan_width_control->name()) {
-				pan_width_control->set_state (**niter, version);
-			} else if (control_name == pan_elevation_control->name()) {
-				pan_elevation_control->set_state (**niter, version);
-			} else if (control_name == pan_frontback_control->name()) {
-				pan_frontback_control->set_state (**niter, version);
-			} else if (control_name == pan_lfe_control->name()) {
-				pan_lfe_control->set_state (**niter, version);
+			if (control_name == _pan_azimuth_control->name()) {
+				_pan_azimuth_control->set_state (**niter, version);
+			} else if (control_name == _pan_width_control->name()) {
+				_pan_width_control->set_state (**niter, version);
+			} else if (control_name == _pan_elevation_control->name()) {
+				_pan_elevation_control->set_state (**niter, version);
+			} else if (control_name == _pan_frontback_control->name()) {
+				_pan_frontback_control->set_state (**niter, version);
+			} else if (control_name == _pan_lfe_control->name()) {
+				_pan_lfe_control->set_state (**niter, version);
 			}
 
 		} else if ((*niter)->name() == Automatable::xml_node_name) {
@@ -240,23 +234,23 @@ Pannable::set_state (const XMLNode& root, int version)
 			float val;
 			if ((*niter)->name() == X_("azimuth")) {
 				if ((*niter)->get_property (X_("value"), val)) {
-					pan_azimuth_control->set_value (val, Controllable::NoGroup);
+					_pan_azimuth_control->set_value (val, Controllable::NoGroup);
 				}
 			} else if ((*niter)->name() == X_("width")) {
 				if ((*niter)->get_property (X_("value"), val)) {
-					pan_width_control->set_value (val, Controllable::NoGroup);
+					_pan_width_control->set_value (val, Controllable::NoGroup);
 				}
 			} else if ((*niter)->name() == X_("elevation")) {
 				if ((*niter)->get_property (X_("value"), val)) {
-					pan_elevation_control->set_value (val, Controllable::NoGroup);
+					_pan_elevation_control->set_value (val, Controllable::NoGroup);
 				}
 			} else if ((*niter)->name() == X_("frontback")) {
 				if ((*niter)->get_property (X_("value"), val)) {
-					pan_frontback_control->set_value (val, Controllable::NoGroup);
+					_pan_frontback_control->set_value (val, Controllable::NoGroup);
 				}
 			} else if ((*niter)->name() == X_("lfe")) {
 				if ((*niter)->get_property (X_("value"), val)) {
-					pan_lfe_control->set_value (val, Controllable::NoGroup);
+					_pan_lfe_control->set_value (val, Controllable::NoGroup);
 				}
 			}
 		}

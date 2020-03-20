@@ -36,7 +36,7 @@
 #include "ardour/monitor_control.h"
 #include "ardour/midi_track.h"
 #include "ardour/pan_controllable.h"
-#include "ardour/pannable.h"
+#include "ardour/pan_controls.h"
 #include "ardour/plugin.h"
 #include "ardour/plugin_insert.h"
 #include "ardour/record_enable_control.h"
@@ -557,9 +557,9 @@ Automatable::control_factory(const Evoral::Parameter& param)
 	} else if (param.type() == BusSendLevel) {
 		control = new GainControl(_a_session, param);
 	} else if (param.type() == PanAzimuthAutomation || param.type() == PanWidthAutomation || param.type() == PanElevationAutomation) {
-		Pannable* pannable = dynamic_cast<Pannable*>(this);
-		if (pannable) {
-			control = new PanControllable (_a_session, describe_parameter (param), pannable, param);
+		PanControls* pan_ctrls = dynamic_cast<PanControls*>(this);
+		if (pan_ctrls) {
+			control = new PanControllable (_a_session, describe_parameter (param), pan_ctrls, param);
 		} else {
 			warning << "PanAutomation for non-Pannable" << endl;
 		}

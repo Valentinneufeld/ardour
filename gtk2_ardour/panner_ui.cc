@@ -30,7 +30,7 @@
 
 #include "pbd/fastlog.h"
 
-#include "ardour/pannable.h"
+#include "ardour/pan_controls.h"
 #include "ardour/panner.h"
 #include "ardour/panner_shell.h"
 #include "ardour/session.h"
@@ -252,7 +252,7 @@ PannerUI::setup_pan ()
 		delete big_window;
 		big_window = 0;
 
-		boost::shared_ptr<Pannable> pannable = _panner->pannable();
+		boost::shared_ptr<PanControls> pan_ctrls = _panshell->pan_ctrls();
 
 		_stereo_panner = new StereoPanner (_panshell);
 		_stereo_panner->set_size_request (-1, 5 * ceilf(7.f * scale));
@@ -261,13 +261,13 @@ PannerUI::setup_pan ()
 
 		boost::shared_ptr<AutomationControl> ac;
 
-		ac = pannable->pan_azimuth_control;
+		ac = pan_ctrls->pan_azimuth_control ();
 		_stereo_panner->StartPositionGesture.connect (sigc::bind (sigc::mem_fun (*this, &PannerUI::start_touch),
 					boost::weak_ptr<AutomationControl> (ac)));
 		_stereo_panner->StopPositionGesture.connect (sigc::bind (sigc::mem_fun (*this, &PannerUI::stop_touch),
 					boost::weak_ptr<AutomationControl>(ac)));
 
-		ac = pannable->pan_width_control;
+		ac = pan_ctrls->pan_width_control ();
 		_stereo_panner->StartWidthGesture.connect (sigc::bind (sigc::mem_fun (*this, &PannerUI::start_touch),
 					boost::weak_ptr<AutomationControl> (ac)));
 		_stereo_panner->StopWidthGesture.connect (sigc::bind (sigc::mem_fun (*this, &PannerUI::stop_touch),
@@ -279,8 +279,8 @@ PannerUI::setup_pan ()
 	{
 		delete big_window;
 		big_window = 0;
-		boost::shared_ptr<Pannable> pannable = _panner->pannable();
-		boost::shared_ptr<AutomationControl> ac = pannable->pan_azimuth_control;
+		boost::shared_ptr<PanControls> pan_ctrls = _panshell->pan_ctrls();
+		boost::shared_ptr<AutomationControl> ac = pan_ctrls->pan_azimuth_control ();
 
 		_mono_panner = new MonoPanner (_panshell);
 
@@ -486,7 +486,7 @@ PannerUI::effective_pan_display ()
 void
 PannerUI::update_pan_sensitive ()
 {
-	bool const sensitive = !(_panner->pannable()->automation_state() & Play);
+	bool const sensitive = !(_panner->pan_ctrls()->automation_state() & Play);
 
 	pan_vbox.set_sensitive (sensitive);
 
@@ -521,10 +521,10 @@ PannerUI::pan_automation_state_button_event (GdkEventButton *ev)
 void
 PannerUI::pan_automation_state_changed ()
 {
-	boost::shared_ptr<Pannable> pannable (_panner->pannable());
-	pan_automation_state_button.set_label (GainMeterBase::short_astate_string(pannable->automation_state()));
+	boost::shared_ptr<PanControls> pan_ctrls (_panshell->pan_ctrls());
+	pan_automation_state_button.set_label (GainMeterBase::short_astate_string(pan_ctrls->automation_state()));
 
-	bool x = (pannable->automation_state() != ARDOUR::Off);
+	bool x = (pan_ctrls->automation_state() != ARDOUR::Off);
 
 	if (pan_automation_state_button.get_active() != x) {
 		ignore_toggle = true;

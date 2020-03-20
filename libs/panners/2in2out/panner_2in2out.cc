@@ -44,7 +44,7 @@
 #include "ardour/audio_buffer.h"
 #include "ardour/buffer_set.h"
 #include "ardour/pan_controllable.h"
-#include "ardour/pannable.h"
+#include "ardour/pan_controls.h"
 #include "ardour/runtime_functions.h"
 #include "ardour/session.h"
 #include "ardour/utils.h"
@@ -71,12 +71,12 @@ static PanPluginDescriptor _descriptor = {
 
 extern "C" ARDOURPANNER_API PanPluginDescriptor* panner_descriptor () { return &_descriptor; }
 
-Panner2in2out::Panner2in2out (boost::shared_ptr<Pannable> p)
+Panner2in2out::Panner2in2out (boost::shared_ptr<PanControls> p)
 	: Panner (p)
 {
-        if (!_pannable->has_state()) {
-	        _pannable->pan_azimuth_control->set_value (0.5, Controllable::NoGroup);
-	        _pannable->pan_width_control->set_value (1.0, Controllable::NoGroup);
+        if (!_pan_ctrls->has_state()) {
+	        _pan_ctrls->pan_azimuth_control()->set_value (0.5, Controllable::NoGroup);
+	        _pan_ctrls->pan_width_control()->set_value (1.0, Controllable::NoGroup);
         }
 
         double const w = width();
@@ -98,8 +98,8 @@ Panner2in2out::Panner2in2out (boost::shared_ptr<Pannable> p)
         left_interp[1] = left[1] = desired_left[1];
         right_interp[1] = right[1] = desired_right[1];
 
-        _pannable->pan_azimuth_control->Changed.connect_same_thread (*this, boost::bind (&Panner2in2out::update, this));
-        _pannable->pan_width_control->Changed.connect_same_thread (*this, boost::bind (&Panner2in2out::update, this));
+        _pan_ctrls->pan_azimuth_control()->Changed.connect_same_thread (*this, boost::bind (&Panner2in2out::update, this));
+        _pan_ctrls->pan_width_control()->Changed.connect_same_thread (*this, boost::bind (&Panner2in2out::update, this));
 }
 
 Panner2in2out::~Panner2in2out ()
@@ -109,20 +109,20 @@ Panner2in2out::~Panner2in2out ()
 double
 Panner2in2out::position () const
 {
-        return _pannable->pan_azimuth_control->get_value();
+        return _pan_ctrls->pan_azimuth_control()->get_value();
 }
 
 double
 Panner2in2out::width () const
 {
-        return _pannable->pan_width_control->get_value();
+        return _pan_ctrls->pan_width_control()->get_value();
 }
 
 void
 Panner2in2out::set_position (double p)
 {
         if (clamp_position (p)) {
-	        _pannable->pan_azimuth_control->set_value (p, Controllable::NoGroup);
+	        _pan_ctrls->pan_azimuth_control()->set_value (p, Controllable::NoGroup);
         }
 }
 
@@ -130,7 +130,7 @@ void
 Panner2in2out::set_width (double p)
 {
         if (clamp_width (p)) {
-	        _pannable->pan_width_control->set_value (p, Controllable::NoGroup);
+	        _pan_ctrls->pan_width_control()->set_value (p, Controllable::NoGroup);
         }
 }
 
@@ -403,13 +403,13 @@ Panner2in2out::distribute_one_automated (AudioBuffer& srcbuf, BufferSet& obufs,
 
 	/* fetch positional data */
 
-	if (!_pannable->pan_azimuth_control->list()->curve().rt_safe_get_vector (start, end, position, nframes)) {
+	if (!_pan_ctrls->pan_azimuth_control()->list()->curve().rt_safe_get_vector (start, end, position, nframes)) {
 		/* fallback */
                 distribute_one (srcbuf, obufs, 1.0, nframes, which);
 		return;
 	}
 
-	if (!_pannable->pan_width_control->list()->curve().rt_safe_get_vector (start, end, width, nframes)) {
+	if (!_pan_ctrls->pan_width_control()->list()->curve().rt_safe_get_vector (start, end, width, nframes)) {
 		/* fallback */
                 distribute_one (srcbuf, obufs, 1.0, nframes, which);
 		return;
@@ -473,7 +473,7 @@ Panner2in2out::distribute_one_automated (AudioBuffer& srcbuf, BufferSet& obufs,
 }
 
 Panner*
-Panner2in2out::factory (boost::shared_ptr<Pannable> p, boost::shared_ptr<Speakers> /* ignored */)
+Panner2in2out::factory (boost::shared_ptr<PanControls> p, boost::shared_ptr<Speakers> /* ignored */)
 {
 	return new Panner2in2out (p);
 }

@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "ardour/pannable.h"
+#include "ardour/pan_controls.h"
 #include "ardour/panner.h"
 #include "ardour/pan_controllable.h"
 
@@ -26,14 +26,13 @@ using namespace ARDOUR;
 void
 PanControllable::actually_set_value (double v, Controllable::GroupControlDisposition group_override)
 {
-	boost::shared_ptr<Panner> p = owner->panner();
-
-	if (!p) {
+	if (!owner || !owner->panner()) {
 		/* no panner: just do it */
 		AutomationControl::actually_set_value (v, group_override);
 		return;
 	}
 
+	boost::shared_ptr<Panner> p = owner->panner();
 	bool can_set = false;
 
 	switch (parameter().type()) {

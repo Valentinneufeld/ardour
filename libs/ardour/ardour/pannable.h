@@ -28,6 +28,7 @@
 #include "evoral/Parameter.h"
 
 #include "ardour/automatable.h"
+#include "ardour/pan_controls.h"
 #include "ardour/session_handle.h"
 
 namespace ARDOUR {
@@ -36,27 +37,36 @@ class Session;
 class AutomationControl;
 class Panner;
 
-class LIBARDOUR_API Pannable : public PBD::Stateful, public Automatable, public SessionHandleRef
+class LIBARDOUR_API Pannable : public PBD::Stateful, public Automatable, public SessionHandleRef, public PanControls
 {
 public:
 	Pannable (Session& s);
 	~Pannable ();
 
-	boost::shared_ptr<AutomationControl> pan_azimuth_control;
-	boost::shared_ptr<AutomationControl> pan_elevation_control;
-	boost::shared_ptr<AutomationControl> pan_width_control;
-	boost::shared_ptr<AutomationControl> pan_frontback_control;
-	boost::shared_ptr<AutomationControl> pan_lfe_control;
+	boost::shared_ptr<AutomationControl> const& pan_azimuth_control () {
+		return _pan_azimuth_control;
+	}
 
-	boost::shared_ptr<Panner> panner() const { return _panner.lock(); }
-	void set_panner(boost::shared_ptr<Panner>);
+	boost::shared_ptr<AutomationControl> const& pan_elevation_control () {
+		return _pan_elevation_control;
+	}
 
-	Session& session() { return _session; }
+	boost::shared_ptr<AutomationControl> const& pan_width_control () {
+		return _pan_width_control;
+	}
 
+	boost::shared_ptr<AutomationControl> const& pan_frontback_control () {
+		return _pan_frontback_control;
+	}
+
+	boost::shared_ptr<AutomationControl> const& pan_lfe_control () {
+		return _pan_lfe_control;
+	}
 	const std::set<Evoral::Parameter>& what_can_be_automated() const;
 
 	void set_automation_state (AutoState);
 	AutoState automation_state() const { return _auto_state; }
+
 	PBD::Signal1<void, AutoState> automation_state_changed;
 
 	bool automation_playback() const {
@@ -80,7 +90,6 @@ public:
 protected:
 	virtual XMLNode& state ();
 
-	boost::weak_ptr<Panner> _panner;
 	AutoState _auto_state;
 	gint      _touching;
 	bool      _has_state;
@@ -90,6 +99,12 @@ protected:
 
 private:
 	void value_changed ();
+
+	boost::shared_ptr<AutomationControl> _pan_azimuth_control;
+	boost::shared_ptr<AutomationControl> _pan_elevation_control;
+	boost::shared_ptr<AutomationControl> _pan_width_control;
+	boost::shared_ptr<AutomationControl> _pan_frontback_control;
+	boost::shared_ptr<AutomationControl> _pan_lfe_control;
 };
 
 } // namespace

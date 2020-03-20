@@ -33,8 +33,9 @@
 #include "pbd/error.h"
 #include "pbd/cartesian.h"
 #include "ardour/panner.h"
+#include "ardour/pan_controls.h"
 #include "ardour/panner_shell.h"
-#include "ardour/pannable.h"
+#include "ardour/pan_controls.h"
 #include "ardour/speakers.h"
 
 #include "gtkmm2ext/colors.h"
@@ -298,10 +299,10 @@ void
 Panner2d::handle_position_change ()
 {
 	uint32_t n;
-	double w = panner_shell->pannable()->pan_width_control->get_value();
+	double w = panner_shell->pan_ctrls()->pan_width_control()->get_value();
 
-	position.position = AngularVector (panner_shell->pannable()->pan_azimuth_control->get_value() * 360.0,
-	                                   panner_shell->pannable()->pan_elevation_control->get_value() * 90.0);
+	position.position = AngularVector (panner_shell->pan_ctrls()->pan_azimuth_control()->get_value() * 360.0,
+	                                   panner_shell->pan_ctrls()->pan_elevation_control()->get_value() * 90.0);
 
 	for (uint32_t i = 0; i < signals.size(); ++i) {
 		signals[i]->position = panner_shell->panner()->signal_position (i);
@@ -532,8 +533,8 @@ Panner2d::on_expose_event (GdkEventExpose *event)
 		if (signals.size() > 1) {
 			/* arc to show "diffusion" */
 
-			double width_angle = fabs (panner_shell->pannable()->pan_width_control->get_value()) * 2 * M_PI;
-			double position_angle = panner_shell->pannable()->pan_azimuth_control->get_value() * 2 * M_PI;
+			double width_angle = fabs (panner_shell->pan_ctrls()->pan_width_control()->get_value()) * 2 * M_PI;
+			double position_angle = panner_shell->pan_ctrls()->pan_azimuth_control()->get_value() * 2 * M_PI;
 
 			cairo_save (cr);
 			cairo_translate (cr, radius, radius);
@@ -542,7 +543,7 @@ Panner2d::on_expose_event (GdkEventExpose *event)
 			cairo_move_to (cr, 0, 0);
 			cairo_arc_negative (cr, 0, 0, radius, width_angle, 0.0);
 			cairo_close_path (cr);
-			if (panner_shell->pannable()->pan_width_control->get_value() >= 0.0) {
+			if (panner_shell->pan_ctrls()->pan_width_control()->get_value() >= 0.0) {
 				/* normal width */
 				CSSRGBA(colors.diffusion);
 			} else {
@@ -828,12 +829,12 @@ Panner2d::on_scroll_event (GdkEventScroll* ev)
 	switch (ev->direction) {
 	case GDK_SCROLL_UP:
 	case GDK_SCROLL_RIGHT:
-		panner_shell->panner()->set_position (panner_shell->pannable()->pan_azimuth_control->get_value() - 1.0/360.0);
+		panner_shell->panner()->set_position (panner_shell->pan_ctrls()->pan_azimuth_control()->get_value() - 1.0/360.0);
 		break;
 
 	case GDK_SCROLL_DOWN:
 	case GDK_SCROLL_LEFT:
-		panner_shell->panner()->set_position (panner_shell->pannable()->pan_azimuth_control->get_value() + 1.0/360.0);
+		panner_shell->panner()->set_position (panner_shell->pan_ctrls()->pan_azimuth_control()->get_value() + 1.0/360.0);
 		break;
 	}
 	return true;
@@ -917,7 +918,7 @@ Panner2dWindow::Panner2dWindow (boost::shared_ptr<PannerShell> p, int32_t h, uin
 	p->Changed.connect (panshell_connections, invalidator (*this), boost::bind (&Panner2dWindow::set_bypassed, this), gui_context());
 	/* needed for the width-spinbox in the main window */
 	p->PannableChanged.connect (panshell_connections, invalidator (*this), boost::bind (&Panner2dWindow::pannable_handler, this), gui_context());
-	p->pannable()->pan_width_control->Changed.connect (panvalue_connections, invalidator(*this), boost::bind (&Panner2dWindow::set_width, this), gui_context());
+	p->pan_ctrls()->pan_width_control()->Changed.connect (panvalue_connections, invalidator(*this), boost::bind (&Panner2dWindow::set_width, this), gui_context());
 
 
 	button_box.set_spacing (6);
@@ -973,7 +974,7 @@ Panner2dWindow::bypass_toggled ()
 void
 Panner2dWindow::width_changed ()
 {
-	float model = widget.get_panner_shell()->pannable()->pan_width_control->get_value();
+	float model = widget.get_panner_shell()->pan_ctrls()->pan_width_control()->get_value();
 	float view  = width_spinner.get_value() / 100.0;
 	if (model != view) {
 		widget.get_panner_shell()->panner()->set_width (view);
@@ -984,7 +985,7 @@ void
 Panner2dWindow::pannable_handler ()
 {
 	panvalue_connections.drop_connections();
-	widget.get_panner_shell()->pannable()->pan_width_control->Changed.connect (panvalue_connections, invalidator(*this), boost::bind (&Panner2dWindow::set_width, this), gui_context());
+	widget.get_panner_shell()->pan_ctrls()->pan_width_control()->Changed.connect (panvalue_connections, invalidator(*this), boost::bind (&Panner2dWindow::set_width, this), gui_context());
 	set_width();
 }
 
@@ -1010,7 +1011,7 @@ void
 Panner2dWindow::set_width ()
 {
 	// rounding of spinbox is different from slider -- TODO use slider
-	float model = (widget.get_panner_shell()->pannable()->pan_width_control->get_value() * 100.0);
+	float model = (widget.get_panner_shell()->pan_ctrls()->pan_width_control()->get_value() * 100.0);
 	float view  = (width_spinner.get_value());
 	if (model != view) {
 		width_spinner.set_value (model);

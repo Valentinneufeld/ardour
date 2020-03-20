@@ -35,7 +35,7 @@
 #include "gtkmm2ext/utils.h"
 #include "gtkmm2ext/persistent_tooltip.h"
 
-#include "ardour/pannable.h"
+#include "ardour/pan_controls.h"
 #include "ardour/panner.h"
 #include "ardour/panner_shell.h"
 
@@ -67,8 +67,8 @@ using namespace ARDOUR;
 StereoPanner::StereoPanner (boost::shared_ptr<PannerShell> p)
 	: PannerInterface (p->panner())
 	, _panner_shell (p)
-	, position_control (_panner->pannable()->pan_azimuth_control)
-	, width_control (_panner->pannable()->pan_width_control)
+	, position_control (_panner->pan_ctrls()->pan_azimuth_control())
+	, width_control (_panner->pan_ctrls()->pan_width_control())
 	, dragging_position (false)
 	, dragging_left (false)
 	, dragging_right (false)
@@ -711,8 +711,8 @@ void
 StereoPanner::pannable_handler ()
 {
 	panvalue_connections.drop_connections();
-	position_control = _panner->pannable()->pan_azimuth_control;
-	width_control = _panner->pannable()->pan_width_control;
+	position_control = _panner->pan_ctrls()->pan_azimuth_control ();
+	width_control = _panner->pan_ctrls()->pan_width_control ();
 	position_binder.set_controllable(position_control);
 	width_binder.set_controllable(width_control);
 

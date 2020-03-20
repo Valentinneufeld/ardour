@@ -50,7 +50,7 @@
 #include "ardour/runtime_functions.h"
 #include "ardour/buffer_set.h"
 #include "ardour/audio_buffer.h"
-#include "ardour/pannable.h"
+#include "ardour/pan_controls.h"
 #include "ardour/profile.h"
 
 #include "pbd/i18n.h"
@@ -73,11 +73,11 @@ static PanPluginDescriptor _descriptor = {
 
 extern "C" ARDOURPANNER_API PanPluginDescriptor*  panner_descriptor () { return &_descriptor; }
 
-Panner1in2out::Panner1in2out (boost::shared_ptr<Pannable> p)
+Panner1in2out::Panner1in2out (boost::shared_ptr<PanControls> p)
 	: Panner (p)
 {
-	if (!_pannable->has_state ()) {
-		_pannable->pan_azimuth_control->set_value (0.5, Controllable::NoGroup);
+	if (!_pan_ctrls->has_state ()) {
+		_pan_ctrls->pan_azimuth_control()->set_value (0.5, Controllable::NoGroup);
 	}
 
         _can_automate_list.insert (Evoral::Parameter (PanAzimuthAutomation));
@@ -89,7 +89,7 @@ Panner1in2out::Panner1in2out (boost::shared_ptr<Pannable> p)
         left_interp = left;
         right_interp = right;
 
-        _pannable->pan_azimuth_control->Changed.connect_same_thread (*this, boost::bind (&Panner1in2out::update, this));
+        _pan_ctrls->pan_azimuth_control()->Changed.connect_same_thread (*this, boost::bind (&Panner1in2out::update, this));
 }
 
 Panner1in2out::~Panner1in2out ()
@@ -103,7 +103,7 @@ Panner1in2out::update ()
         float const pan_law_attenuation = -3.0f;
         float const scale = 2.0f - 4.0f * powf (10.0f,pan_law_attenuation/20.0f);
 
-        panR = _pannable->pan_azimuth_control->get_value();
+        panR = _pan_ctrls->pan_azimuth_control()->get_value();
         panL = 1 - panR;
 
         desired_left = panL * (scale * panL + 1.0f - scale);
@@ -114,7 +114,7 @@ void
 Panner1in2out::set_position (double p)
 {
         if (clamp_position (p)) {
-	        _pannable->pan_azimuth_control->set_value (p, Controllable::NoGroup);
+	        _pan_ctrls->pan_azimuth_control()->set_value (p, Controllable::NoGroup);
         }
 }
 
@@ -136,7 +136,7 @@ Panner1in2out::position_range () const
 double
 Panner1in2out::position () const
 {
-        return _pannable->pan_azimuth_control->get_value ();
+        return _pan_ctrls->pan_azimuth_control()->get_value ();
 }
 
 void
@@ -275,7 +275,7 @@ Panner1in2out::distribute_one_automated (AudioBuffer& srcbuf, BufferSet& obufs,
 
 	/* fetch positional data */
 
-	if (!_pannable->pan_azimuth_control->list()->curve().rt_safe_get_vector (start, end, position, nframes)) {
+	if (!_pan_ctrls->pan_azimuth_control()->list()->curve().rt_safe_get_vector (start, end, position, nframes)) {
 		/* fallback */
                 distribute_one (srcbuf, obufs, 1.0, nframes, which);
 		return;
@@ -329,7 +329,7 @@ Panner1in2out::distribute_one_automated (AudioBuffer& srcbuf, BufferSet& obufs,
 
 
 Panner*
-Panner1in2out::factory (boost::shared_ptr<Pannable> p, boost::shared_ptr<Speakers> /* ignored */)
+Panner1in2out::factory (boost::shared_ptr<PanControls> p, boost::shared_ptr<Speakers> /* ignored */)
 {
 	return new Panner1in2out (p);
 }

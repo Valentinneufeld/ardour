@@ -53,16 +53,17 @@
 namespace ARDOUR {
 
 class Session;
-class Pannable;
 class BufferSet;
 class AudioBuffer;
 class Speakers;
+class PanControls;
 class PanControllable;
+class Pannable;
 
 class LIBARDOUR_API Panner : public PBD::Stateful, public PBD::ScopedConnectionList
 {
 public:
-	Panner (boost::shared_ptr<Pannable>);
+	Panner (boost::shared_ptr<PanControls>);
 	~Panner ();
 
 	virtual boost::shared_ptr<Speakers> get_speakers() const { return boost::shared_ptr<Speakers>(); }
@@ -136,16 +137,17 @@ public:
 	int set_state (const XMLNode&, int version);
 	XMLNode& get_state ();
 
-	boost::shared_ptr<Pannable> pannable() const { return _pannable; }
+	boost::shared_ptr<PanControls> pan_ctrls() const { return _pan_ctrls; }
 
 	virtual void freeze ();
 	virtual void thaw ();
 
 protected:
-	friend PanControllable;
+	friend PanControllable; // allow value_as_string + clamp-range
+	friend PanControls; // allow what_can_be_automated
 	friend Pannable; // allow what_can_be_automated
 
-	boost::shared_ptr<Pannable> _pannable;
+	boost::shared_ptr<PanControls> _pan_ctrls;
 
 	std::set<Evoral::Parameter> _can_automate_list;
 
@@ -173,7 +175,7 @@ struct LIBARDOUR_API PanPluginDescriptor {
 	int32_t in;
 	int32_t out;
 	uint32_t priority;
-	ARDOUR::Panner* (*factory)(boost::shared_ptr<ARDOUR::Pannable>, boost::shared_ptr<ARDOUR::Speakers>);
+	ARDOUR::Panner* (*factory)(boost::shared_ptr<ARDOUR::PanControls>, boost::shared_ptr<ARDOUR::Speakers>);
 };
 }
 

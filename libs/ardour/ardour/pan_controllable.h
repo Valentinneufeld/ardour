@@ -32,12 +32,12 @@
 namespace ARDOUR {
 
 class Session;
-class Pannable;
+class PanControls;
 
 class LIBARDOUR_API PanControllable : public AutomationControl
 {
   public:
-	PanControllable (Session& s, std::string name, Pannable* o, Evoral::Parameter param)
+	PanControllable (Session& s, std::string name, PanControls* o, Evoral::Parameter param)
 		: AutomationControl (s,
 		                     param,
 		                     ParameterDescriptor(param),
@@ -49,7 +49,7 @@ class LIBARDOUR_API PanControllable : public AutomationControl
 	std::string get_user_string () const;
 
   private:
-	Pannable* owner;
+	PanControls* owner;
 	void actually_set_value (double, PBD::Controllable::GroupControlDisposition group_override);
 };
 

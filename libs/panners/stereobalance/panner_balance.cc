@@ -43,7 +43,7 @@
 #include "ardour/audio_buffer.h"
 #include "ardour/buffer_set.h"
 #include "ardour/pan_controllable.h"
-#include "ardour/pannable.h"
+#include "ardour/pan_controls.h"
 #include "ardour/runtime_functions.h"
 #include "ardour/session.h"
 #include "ardour/utils.h"
@@ -70,11 +70,11 @@ static PanPluginDescriptor _descriptor = {
 
 extern "C" ARDOURPANNER_API PanPluginDescriptor* panner_descriptor () { return &_descriptor; }
 
-Pannerbalance::Pannerbalance (boost::shared_ptr<Pannable> p)
+Pannerbalance::Pannerbalance (boost::shared_ptr<PanControls> p)
 	: Panner (p)
 {
-	if (!_pannable->has_state()) {
-		_pannable->pan_azimuth_control->set_value (0.5, Controllable::NoGroup);
+	if (!_pan_ctrls->has_state()) {
+		_pan_ctrls->pan_azimuth_control()->set_value (0.5, Controllable::NoGroup);
 	}
 
 	_can_automate_list.insert (Evoral::Parameter (PanAzimuthAutomation));
@@ -86,7 +86,7 @@ Pannerbalance::Pannerbalance (boost::shared_ptr<Pannable> p)
 	/* RIGHT SIGNAL */
 	pos_interp[1] = pos[1] = desired_pos[1];
 
-	_pannable->pan_azimuth_control->Changed.connect_same_thread (*this, boost::bind (&Pannerbalance::update, this));
+	_pan_ctrls->pan_azimuth_control()->Changed.connect_same_thread (*this, boost::bind (&Pannerbalance::update, this));
 }
 
 Pannerbalance::~Pannerbalance ()
@@ -96,14 +96,14 @@ Pannerbalance::~Pannerbalance ()
 double
 Pannerbalance::position () const
 {
-	return _pannable->pan_azimuth_control->get_value();
+	return _pan_ctrls->pan_azimuth_control()->get_value();
 }
 
 	void
 Pannerbalance::set_position (double p)
 {
 	if (clamp_position (p)) {
-		_pannable->pan_azimuth_control->set_value (p, Controllable::NoGroup);
+		_pan_ctrls->pan_azimuth_control()->set_value (p, Controllable::NoGroup);
 	}
 }
 
@@ -123,7 +123,7 @@ Pannerbalance::update ()
 		return;
 	}
 
-	float const pos = _pannable->pan_azimuth_control->get_value();
+	float const pos = _pan_ctrls->pan_azimuth_control()->get_value();
 
 	if (pos == .5) {
 		desired_pos[0] = 1.0;
@@ -226,7 +226,7 @@ Pannerbalance::distribute_one_automated (AudioBuffer& srcbuf, BufferSet& obufs,
 
 	/* fetch positional data */
 
-	if (!_pannable->pan_azimuth_control->list()->curve().rt_safe_get_vector (start, end, position, nframes)) {
+	if (!_pan_ctrls->pan_azimuth_control()->list()->curve().rt_safe_get_vector (start, end, position, nframes)) {
 		/* fallback */
 		distribute_one (srcbuf, obufs, 1.0, nframes, which);
 		return;
@@ -262,7 +262,7 @@ Pannerbalance::distribute_one_automated (AudioBuffer& srcbuf, BufferSet& obufs,
 }
 
 Panner*
-Pannerbalance::factory (boost::shared_ptr<Pannable> p, boost::shared_ptr<Speakers> /* ignored */)
+Pannerbalance::factory (boost::shared_ptr<PanControls> p, boost::shared_ptr<Speakers> /* ignored */)
 {
 	return new Pannerbalance (p);
 }

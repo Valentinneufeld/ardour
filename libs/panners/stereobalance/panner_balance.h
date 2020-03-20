@@ -39,7 +39,7 @@ namespace ARDOUR {
 class Pannerbalance : public Panner
 {
 	public:
-	Pannerbalance (boost::shared_ptr<Pannable>);
+	Pannerbalance (boost::shared_ptr<PanControls>);
 	~Pannerbalance ();
 
 	ChanCount in() const { return ChanCount (DataType::AUDIO, 2); }
@@ -50,7 +50,7 @@ class Pannerbalance : public Panner
 	std::pair<double, double> position_range () const;
 	double position () const;
 
-	static Panner* factory (boost::shared_ptr<Pannable>, boost::shared_ptr<Speakers>);
+	static Panner* factory (boost::shared_ptr<PanControls>, boost::shared_ptr<Speakers>);
 
 	std::string value_as_string (boost::shared_ptr<const AutomationControl>) const;
 

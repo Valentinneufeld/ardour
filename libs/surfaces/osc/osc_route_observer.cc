@@ -32,7 +32,7 @@
 #include "ardour/meter.h"
 #include "ardour/panner.h"
 #include "ardour/panner_shell.h"
-#include "ardour/pannable.h"
+#include "ardour/pan_controls.h"
 #include "ardour/route.h"
 #include "ardour/route_group.h"
 #include "ardour/send.h"
@@ -250,7 +250,7 @@ OSCRouteObserver::refresh_send (boost::shared_ptr<ARDOUR::Send> new_send, bool f
 		gain_automation ();
 
 		if (_send->pan_outs() > 1) {
-			boost::shared_ptr<Controllable> pan_controllable = boost::dynamic_pointer_cast<Controllable>(_send->panner_shell()->panner()->pannable()->pan_azimuth_control);
+			boost::shared_ptr<Controllable> pan_controllable = boost::dynamic_pointer_cast<Controllable>(_send->panner_shell()->panner()->pan_ctrls()->pan_azimuth_control());
 			if (pan_controllable) {
 				pan_controllable->Changed.connect (strip_connections, MISSING_INVALIDATOR, boost::bind (&OSCRouteObserver::send_change_message, this, X_("/strip/pan_stereo_position"), pan_controllable), OSC::instance());
 				send_change_message (X_("/strip/pan_stereo_position"), pan_controllable);

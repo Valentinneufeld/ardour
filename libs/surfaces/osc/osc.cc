@@ -54,7 +54,7 @@
 #include "ardour/filesystem_paths.h"
 #include "ardour/panner.h"
 #include "ardour/panner_shell.h"
-#include "ardour/pannable.h"
+#include "ardour/pan_controls.h"
 #include "ardour/plugin.h"
 #include "ardour/plugin_insert.h"
 #include "ardour/presentation_info.h"
@@ -5091,7 +5091,7 @@ OSC::route_set_pan_stereo_position (int ssid, float pos, lo_message msg)
 		if (sur->temp_mode == BusOnly && get_send (s, get_address (msg))) {
 			boost::shared_ptr<ARDOUR::Send> send = get_send (s, get_address (msg));
 			if (send->pan_outs() > 1) {
-				pan_control = send->panner_shell()->panner()->pannable()->pan_azimuth_control;
+				pan_control = send->panner_shell()->panner()->pan_ctrls()->pan_azimuth_control ();
 			}
 		} else {
 			pan_control = s->pan_azimuth_control();

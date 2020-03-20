@@ -17,7 +17,7 @@
 */
 
 #include "ardour/audioengine.h"
-#include "ardour/pannable.h"
+#include "ardour/pan_controls.h"
 #include "ardour/panner_shell.h"
 #include "ardour/panner_manager.h"
 #include "ardour/profile.h"
@@ -91,9 +91,9 @@ FoldbackSend::FoldbackSend (boost::shared_ptr<Send> snd, \
 
 	if (_foldback_route->input()->n_ports().n_audio() == 2) {
 		_button.set_layout_ellipsize_width (PX_SCALE(_width - 19) * PANGO_SCALE);
-		boost::shared_ptr<Pannable> pannable = _send_del->panner()->pannable();
+		boost::shared_ptr<PanControls> pan_ctrls = _send_del->panner()->pan_ctrls();
 		boost::shared_ptr<AutomationControl> ac;
-		ac = pannable->pan_azimuth_control;
+		ac = pan_ctrls->pan_azimuth_control ();
 		pan_control.set_size_request (PX_SCALE(19), PX_SCALE(19));
 		pan_control.set_tooltip_prefix (_("Pan: "));
 		pan_control.set_name ("trim knob");
@@ -802,8 +802,6 @@ FoldbackStrip::connect_to_pan ()
 	if (!_route->panner()) {
 		return;
 	}
-
-	boost::shared_ptr<Pannable> p = _route->pannable ();
 
 	update_panner_choices();
 }
