@@ -151,16 +151,18 @@ PannerUI::build_astate_menu ()
 	/** TRANSLATORS: this is `Manual' in the sense of automation not being played,
 	    so that changes to pan must be done by hand.
 	*/
+	boost::shared_ptr<PanControls> pan_ctrls = _panshell->pan_ctrls();
+
 	pan_astate_menu->items().push_back (MenuElem (GainMeterBase::astate_string (ARDOUR::Off),
-			sigc::bind ( sigc::mem_fun (_panner.get(), &Panner::set_automation_state), (AutoState) ARDOUR::Off)));
+			sigc::bind ( sigc::mem_fun (pan_ctrls.get(), &PanControls::set_automation_state), (AutoState) ARDOUR::Off)));
 	pan_astate_menu->items().push_back (MenuElem (GainMeterBase::astate_string (ARDOUR::Play),
-			sigc::bind ( sigc::mem_fun (_panner.get(), &Panner::set_automation_state), (AutoState) Play)));
+			sigc::bind ( sigc::mem_fun (pan_ctrls.get(), &PanControls::set_automation_state), (AutoState) Play)));
 	pan_astate_menu->items().push_back (MenuElem (GainMeterBase::astate_string (ARDOUR::Write),
-			sigc::bind ( sigc::mem_fun (_panner.get(), &Panner::set_automation_state), (AutoState) Write)));
+			sigc::bind ( sigc::mem_fun (pan_ctrls.get(), &PanControls::set_automation_state), (AutoState) Write)));
 	pan_astate_menu->items().push_back (MenuElem (GainMeterBase::astate_string (ARDOUR::Touch),
-			sigc::bind (sigc::mem_fun (_panner.get(), &Panner::set_automation_state), (AutoState) Touch)));
+			sigc::bind (sigc::mem_fun (pan_ctrls.get(), &PanControls::set_automation_state), (AutoState) Touch)));
 	pan_astate_menu->items().push_back (MenuElem (GainMeterBase::astate_string (ARDOUR::Latch),
-			sigc::bind ( sigc::mem_fun (_panner.get(), &Panner::set_automation_state), (AutoState) Latch)));
+			sigc::bind ( sigc::mem_fun (pan_ctrls.get(), &PanControls::set_automation_state), (AutoState) Latch)));
 
 }
 
@@ -486,7 +488,7 @@ PannerUI::effective_pan_display ()
 void
 PannerUI::update_pan_sensitive ()
 {
-	bool const sensitive = !(_panner->pan_ctrls()->automation_state() & Play);
+	bool const sensitive = !(_panshell->pan_ctrls()->automation_state() & Play);
 
 	pan_vbox.set_sensitive (sensitive);
 

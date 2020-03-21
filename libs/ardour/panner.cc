@@ -68,24 +68,6 @@ Panner::distribute_automated (BufferSet& ibufs, BufferSet& obufs,
 	}
 }
 
-void
-Panner::set_automation_state (AutoState state)
-{
-	_pan_ctrls->set_automation_state (state);
-}
-
-AutoState
-Panner::automation_state () const
-{
-	return _pan_ctrls->automation_state();
-}
-
-bool
-Panner::touching () const
-{
-	return _pan_ctrls->touching ();
-}
-
 int
 Panner::set_state (XMLNode const &, int)
 {
